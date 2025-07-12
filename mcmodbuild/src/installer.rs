@@ -1,5 +1,6 @@
 use std::{
     fs,
+    io::Write,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -30,10 +31,49 @@ impl Installer {
     }
 
     pub fn install(&self, destination: PathBuf) -> Result<()> {
-        self.ensure_cache_directory()?;
-        self.clone_or_update_repository()?;
-        self.build_project()?;
-        self.copy_built_files(destination)?;
+        println!("🚀 Starting installation...");
+
+        let steps: Vec<(&str, &str, &str, Box<dyn FnOnce() -> Result<()>>)> = vec![
+            (
+                "Preparing cache...\n",
+                "Created build directory\n",
+                "Failed to create build directory\n",
+                Box::new(|| self.ensure_cache_directory()),
+            ),
+            (
+                "Updating repository...\n",
+                "Repository synced\n",
+                "Failed to sync recpository\n",
+                Box::new(|| self.clone_or_update_repository()),
+            ),
+            (
+                "Building mod...\n",
+                "Mod built\n",
+                "Failed to build mod\n",
+                Box::new(|| self.build_project()),
+            ),
+            (
+                "Copying files...\n",
+                "Files copied\n",
+                "Failed to copy files\n",
+                Box::new(move || self.copy_built_files(&destination)),
+            ),
+        ];
+
+        for (i, (msg, success, failure, step)) in steps.into_iter().enumerate() {
+            print!("[{}/{}] {}", i + 1, 4, msg);
+            std::io::stdout().flush()?;
+
+            match step() {
+                Ok(_) => println!("✅ {}", success),
+                Err(e) => {
+                    println!("❌ {}", failure);
+                    return Err(e);
+                }
+            }
+        }
+
+        println!("🎉 Installation complete!");
         Ok(())
     }
 
@@ -51,7 +91,6 @@ impl Installer {
             fs::create_dir(&self.build_path)?;
         }
 
-        println!("Cloning repository...");
         let mut git_command = if exists {
             self.create_git_pull_command()
         } else {
@@ -115,7 +154,7 @@ impl Installer {
         Ok(cmd)
     }
 
-    fn copy_built_files(&self, destination: PathBuf) -> Result<()> {
+    fn copy_built_files(&self, destination: &PathBuf) -> Result<()> {
         let real_out = self
             .build
             .out
