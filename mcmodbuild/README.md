@@ -27,7 +27,7 @@ exclude:
 
 ### `mcmodbuild build <path-to-build-file>`
 
-Converts a build file into an installation file named "<id>.mcmodbuild".
+Converts a build file into an installation file named "\<id>.mcmodbuild".
 Optional arguments:
 
 - `-d`: Destination. Example: `mcmodbuild build testmod.yml -d dist/mod.mcmodbuild`
