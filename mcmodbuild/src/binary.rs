@@ -1,7 +1,5 @@
-use crate::cli::McModBuild;
 use crate::structs::{BuildType, ExcludePair, ExcludeType, ModBuild};
 use anyhow::{Ok, Result, bail};
-use clap::Parser;
 
 pub fn serialize(build: ModBuild) -> Result<Vec<u8>> {
     let header_id: &[u8] = "mcmodbuild".as_bytes();
@@ -9,6 +7,7 @@ pub fn serialize(build: ModBuild) -> Result<Vec<u8>> {
     let data_id: &[u8] = build.id.as_bytes();
     let data_name: &[u8] = build.name.as_bytes();
     let data_git: &[u8] = build.git.as_bytes();
+    let data_branch: &[u8] = build.branch.as_bytes();
     let data_build_type: u8 = build.build as u8;
     let data_cmd: Option<&[u8]> = if build.build == BuildType::Cmd {
         let cmd = build.cmd.as_ref().unwrap();
@@ -41,6 +40,8 @@ pub fn serialize(build: ModBuild) -> Result<Vec<u8>> {
     buf.extend(data_name);
     buf.push(0);
     buf.extend(data_git);
+    buf.push(0);
+    buf.extend(data_branch);
     buf.push(0);
     buf.push(data_build_type);
     if let Some(cmd) = data_cmd {
@@ -89,6 +90,7 @@ pub fn deserialize(mut buf: &[u8]) -> Result<ModBuild> {
     let id = read_cstring(&mut buf)?;
     let name = read_cstring(&mut buf)?;
     let git = read_cstring(&mut buf)?;
+    let branch = read_cstring(&mut buf)?;
 
     // build type
     if buf.is_empty() {
@@ -138,6 +140,7 @@ pub fn deserialize(mut buf: &[u8]) -> Result<ModBuild> {
         id,
         name,
         git,
+        branch,
         build,
         cmd,
         out,

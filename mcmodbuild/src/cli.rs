@@ -12,9 +12,13 @@ pub enum Subcommands {
     Build {
         #[clap(required = true)]
         file: String,
+        #[clap(short = 'd')]
+        destination: Option<String>,
     },
     Install {
         #[clap(required = true)]
         file: String,
+        #[clap(short = 'd')]
+        destination: Option<String>,
     },
 }

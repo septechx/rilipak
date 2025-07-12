@@ -24,6 +24,7 @@ pub struct ModBuild {
     pub id: String,
     pub name: String,
     pub git: String,
+    pub branch: String,
     pub build: BuildType,
     pub cmd: Option<String>,
     pub out: String,
