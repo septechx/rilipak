@@ -10,9 +10,9 @@ use anyhow::{Result, bail};
 use directories::ProjectDirs;
 
 pub struct Installer {
-    build: ModBuild,
-    cache_dir: PathBuf,
-    build_path: PathBuf,
+    pub build: ModBuild,
+    pub cache_dir: PathBuf,
+    pub build_path: PathBuf,
 }
 
 impl Installer {
@@ -77,14 +77,14 @@ impl Installer {
         Ok(())
     }
 
-    fn ensure_cache_directory(&self) -> Result<()> {
+    pub fn ensure_cache_directory(&self) -> Result<()> {
         if !self.cache_dir.exists() {
             fs::create_dir_all(&self.cache_dir)?;
         }
         Ok(())
     }
 
-    fn clone_or_update_repository(&self) -> Result<()> {
+    pub fn clone_or_update_repository(&self) -> Result<()> {
         let exists = self.build_path.exists();
 
         if !exists {
@@ -98,6 +98,12 @@ impl Installer {
         };
 
         git_command.spawn()?.wait()?;
+        Ok(())
+    }
+
+    pub fn build_project(&self) -> Result<()> {
+        let mut build_command = self.create_build_command()?;
+        build_command.spawn()?.wait()?;
         Ok(())
     }
 
@@ -124,12 +130,6 @@ impl Installer {
         cmd
     }
 
-    fn build_project(&self) -> Result<()> {
-        let mut build_command = self.create_build_command()?;
-        build_command.spawn()?.wait()?;
-        Ok(())
-    }
-
     fn create_build_command(&self) -> Result<Command> {
         let cmd_str = match self.build.build {
             BuildType::Std => "./gradlew build".to_string(),
@@ -154,7 +154,7 @@ impl Installer {
         Ok(cmd)
     }
 
-    fn copy_built_files(&self, destination: &PathBuf) -> Result<()> {
+    pub fn get_built_files(&self) -> Result<PathBuf> {
         let real_out = self
             .build
             .out
@@ -172,9 +172,10 @@ impl Installer {
 
         let out_path = Path::new(&out_path);
 
+        let path: PathBuf;
         match path_type {
             PathType::File => {
-                fs::copy(out_path, &destination)?;
+                path = out_path.to_path_buf();
             }
             PathType::Dir => {
                 let matching_files = self.find_matching_files(out_path)?;
@@ -183,9 +184,16 @@ impl Installer {
                     bail!("Matched more or less than one result files");
                 }
 
-                fs::copy(&matching_files[0], &destination)?;
+                path = matching_files[0].clone();
             }
-        };
+        }
+
+        Ok(path)
+    }
+
+    fn copy_built_files(&self, destination: &PathBuf) -> Result<()> {
+        let path = self.get_built_files()?;
+        fs::copy(path, destination)?;
 
         Ok(())
     }
