@@ -102,7 +102,7 @@ mod tests {
             ],
         };
 
-        let serialized = serialize(build.clone()).unwrap();
+        let serialized = build.clone().serialize().unwrap();
         let deserialized = deserialize(&serialized).unwrap();
         assert_eq!(build, deserialized);
     }
