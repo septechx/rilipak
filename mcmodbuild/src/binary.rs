@@ -1,63 +1,6 @@
 use crate::structs::{BuildType, ExcludePair, ExcludeType, ModBuild};
 use anyhow::{Ok, Result, bail};
 
-pub fn serialize(build: ModBuild) -> Result<Vec<u8>> {
-    let header_id: &[u8] = "mcmodbuild".as_bytes();
-    let header_version: u16 = 1;
-    let data_id: &[u8] = build.id.as_bytes();
-    let data_name: &[u8] = build.name.as_bytes();
-    let data_git: &[u8] = build.git.as_bytes();
-    let data_branch: &[u8] = build.branch.as_bytes();
-    let data_build_type: u8 = build.build as u8;
-    let data_cmd: Option<&[u8]> = if build.build == BuildType::Cmd {
-        let cmd = build.cmd.as_ref().unwrap();
-        Some(cmd.as_bytes())
-    } else {
-        None
-    };
-    let data_out: &[u8] = build.out.as_bytes();
-    let data_exclude_len: u8 = build.exclude.len() as u8;
-    let data_exclude: Vec<u8> = build
-        .exclude
-        .iter()
-        .flat_map(|exclude_pair| {
-            let typeint = exclude_pair.type_name.clone() as u8;
-            let value = exclude_pair.value.as_bytes();
-            let mut buf = Vec::with_capacity(1 + value.len() + 1);
-            buf.push(typeint);
-            buf.extend(value);
-            buf.push(0);
-            buf
-        })
-        .collect();
-
-    let mut buf: Vec<u8> = vec![];
-    buf.extend(header_id);
-    buf.push(0);
-    buf.extend(header_version.to_le_bytes());
-    buf.extend(data_id);
-    buf.push(0);
-    buf.extend(data_name);
-    buf.push(0);
-    buf.extend(data_git);
-    buf.push(0);
-    buf.extend(data_branch);
-    buf.push(0);
-    buf.push(data_build_type);
-    if let Some(cmd) = data_cmd {
-        buf.extend(cmd);
-        buf.push(0);
-    } else {
-        buf.push(0);
-    };
-    buf.extend(data_out);
-    buf.push(0);
-    buf.push(data_exclude_len);
-    buf.extend(data_exclude);
-
-    Ok(buf)
-}
-
 pub fn deserialize(mut buf: &[u8]) -> Result<ModBuild> {
     // helper to read up to the next 0 byte
     fn read_cstring(buf: &mut &[u8]) -> Result<String> {

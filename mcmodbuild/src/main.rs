@@ -9,14 +9,14 @@ use std::{
 };
 
 use anyhow::{Ok, Result};
-use binary::{deserialize, serialize};
+use binary::deserialize;
 use clap::Parser;
-use cli::McModBuild;
 use installer::Installer;
+use oxfmt::Serializeable;
 use structs::ModBuild;
 
 fn main() -> Result<()> {
-    let cli = McModBuild::parse();
+    let cli = cli::McModBuild::parse();
 
     match cli.subcommand {
         cli::Subcommands::Build { file, destination } => build(file, destination)?,
@@ -38,9 +38,7 @@ fn build(file: String, destination: Option<String>) -> Result<()> {
         Path::new(&name).to_path_buf()
     };
 
-    let result = serialize(build)?;
-
-    fs::write(path, result.as_slice())?;
+    fs::write(path, build.serialize()?)?;
 
     Ok(())
 }
