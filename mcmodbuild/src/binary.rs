@@ -1,5 +1,5 @@
 use crate::structs::{BuildType, ExcludePair, ExcludeType, ModBuild};
-use anyhow::{Ok, Result, bail};
+use anyhow::{bail, Ok, Result};
 
 pub fn deserialize(mut buf: &[u8]) -> Result<ModBuild> {
     // helper to read up to the next 0 byte
@@ -43,15 +43,9 @@ pub fn deserialize(mut buf: &[u8]) -> Result<ModBuild> {
     buf = &buf[1..];
 
     // optional cmd (always terminated by 0)
-    let cmd = {
-        let s = read_cstring(&mut buf)?;
-        if build == BuildType::Cmd {
-            Some(s)
-        } else if s.is_empty() {
-            None
-        } else {
-            bail!("unexpected cmd for non-Cmd build");
-        }
+    let cmd = match build {
+        BuildType::Cmd => Some(read_cstring(&mut buf)?),
+        BuildType::Std => None,
     };
 
     // out

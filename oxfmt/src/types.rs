@@ -1,6 +1,6 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use std::{
-    alloc::{Layout, alloc},
+    alloc::{alloc, Layout},
     ptr::copy_nonoverlapping,
     slice,
 };
@@ -81,7 +81,7 @@ impl<T: Serializeable> Serializeable for Option<T> {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(match self {
             Some(val) => val.serialize()?,
-            None => Box::from([0]),
+            None => Box::from([]),
         })
     }
 }
