@@ -1,3 +1,3 @@
 # 0xfmt
 
-This is a small rust library for serializing and desrializing data into byte arrays
+Small rust library for serializing and deserializing data into byte arrays
