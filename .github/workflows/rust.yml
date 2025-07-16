@@ -23,12 +23,12 @@ jobs:
     - name: Run tests for root project
       run: cargo test --verbose
 
-    - name: Build mdmodbuild
-      working-directory: mdmodbuild
+    - name: Build mcmodbuild
+      working-directory: mcmodbuild
       run: cargo build --verbose
 
-    - name: Run tests for mdmodbuild
-      working-directory: mdmodbuild
+    - name: Run tests for mcmodbuild
+      working-directory: mcmodbuild
       run: cargo test --verbose
 
     - name: Build oxfmt
