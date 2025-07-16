@@ -1,6 +1,6 @@
 use std::{any::Any, collections::HashMap};
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 use oxfmt::{BinaryBuilder, Deserializable, Field, Serializable, Structure};
 use serde::{Deserialize, Serialize};
 
@@ -125,22 +125,5 @@ impl TryFrom<u8> for ExcludeType {
 impl Serializable for ExcludeType {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new([*self as u8]))
-    }
-}
-
-impl Deserializable for ExcludeType {
-    fn get_structure() -> Structure {
-        let mut fields = HashMap::new();
-        fields.insert(0, Field::U8);
-        Structure { fields }
-    }
-
-    fn construct(mut fields: Vec<Box<dyn Any>>) -> Result<Self> {
-        let value = *fields
-            .remove(0)
-            .downcast::<u8>()
-            .map_err(|_| anyhow!("expected u8 for ExcludeType"))?;
-
-        Self::try_from(value)
     }
 }
