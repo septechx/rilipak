@@ -1,5 +1,7 @@
-use anyhow::{Result, bail};
-use oxfmt::Serializeable;
+use std::{any::Any, collections::HashMap};
+
+use anyhow::{Result, anyhow, bail};
+use oxfmt::{BinaryBuilder, Deserializable, Field, Serializable, Structure};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
@@ -20,7 +22,7 @@ impl TryFrom<u8> for BuildType {
     }
 }
 
-impl Serializeable for BuildType {
+impl Serializable for BuildType {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new([*self as u8]))
     }
@@ -38,23 +40,23 @@ pub struct ModBuild {
     pub exclude: Vec<ExcludePair>,
 }
 
-impl Serializeable for ModBuild {
+impl Serializable for ModBuild {
     fn serialize(&self) -> Result<Box<[u8]>> {
-        let header_id: String = "mcmodbuild".to_string();
-        let header_version: u16 = 1;
+        let header = "mcmodbuild".as_bytes();
+        let version: u16 = 1;
 
-        let mut buf: Vec<u8> = vec![];
-        buf.extend(Serializeable::serialize(&header_id)?);
-        buf.extend(Serializeable::serialize(&header_version)?);
-        buf.extend(Serializeable::serialize(&self.id)?);
-        buf.extend(Serializeable::serialize(&self.name)?);
-        buf.extend(Serializeable::serialize(&self.git)?);
-        buf.extend(Serializeable::serialize(&self.branch)?);
-        buf.extend(Serializeable::serialize(&self.build)?);
-        buf.extend(Serializeable::serialize(&self.cmd)?);
-        buf.extend(Serializeable::serialize(&self.out)?);
-        buf.extend(Serializeable::serialize(&self.exclude)?);
-        Ok(buf.into_boxed_slice())
+        let result = BinaryBuilder::new(header, version)
+            .add(&self.id)?
+            .add(&self.name)?
+            .add(&self.git)?
+            .add(&self.branch)?
+            .add(&self.build)?
+            .add(&self.cmd)?
+            .add(&self.out)?
+            .add(&self.exclude)?
+            .build();
+
+        Ok(result)
     }
 }
 
@@ -65,12 +67,38 @@ pub struct ExcludePair {
     pub value: String,
 }
 
-impl Serializeable for ExcludePair {
+impl Serializable for ExcludePair {
     fn serialize(&self) -> Result<Box<[u8]>> {
-        let mut buf: Vec<u8> = vec![];
-        buf.extend(Serializeable::serialize(&self.type_name)?);
-        buf.extend(Serializeable::serialize(&self.value)?);
-        Ok(buf.into_boxed_slice())
+        let result = BinaryBuilder::new_no_meta()
+            .add(&self.type_name)?
+            .add(&self.value)?
+            .build();
+
+        Ok(result)
+    }
+}
+
+impl Deserializable for ExcludePair {
+    fn get_structure() -> Structure {
+        let mut fields = HashMap::new();
+        fields.insert(0, Field::U8);
+        fields.insert(1, Field::String);
+        Structure { fields }
+    }
+
+    fn construct(mut fields: Vec<Box<dyn Any>>) -> Result<Self> {
+        let type_value = *fields
+            .remove(0)
+            .downcast::<u8>()
+            .map_err(|_| anyhow!("expected u8 for ExcludeType"))?;
+        let type_name = ExcludeType::try_from(type_value)?;
+
+        let value = *fields
+            .remove(0)
+            .downcast::<String>()
+            .map_err(|_| anyhow!("expected string"))?;
+
+        Ok(ExcludePair { type_name, value })
     }
 }
 
@@ -94,8 +122,25 @@ impl TryFrom<u8> for ExcludeType {
     }
 }
 
-impl Serializeable for ExcludeType {
+impl Serializable for ExcludeType {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new([*self as u8]))
+    }
+}
+
+impl Deserializable for ExcludeType {
+    fn get_structure() -> Structure {
+        let mut fields = HashMap::new();
+        fields.insert(0, Field::U8);
+        Structure { fields }
+    }
+
+    fn construct(mut fields: Vec<Box<dyn Any>>) -> Result<Self> {
+        let value = *fields
+            .remove(0)
+            .downcast::<u8>()
+            .map_err(|_| anyhow!("expected u8 for ExcludeType"))?;
+
+        Self::try_from(value)
     }
 }

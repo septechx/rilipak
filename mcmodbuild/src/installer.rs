@@ -30,6 +30,7 @@ impl Installer {
         })
     }
 
+    #[allow(dead_code)]
     pub fn install(&self, destination: PathBuf) -> Result<()> {
         println!("🚀 Starting installation...");
 
@@ -191,6 +192,7 @@ impl Installer {
         Ok(path)
     }
 
+    #[allow(dead_code)]
     fn copy_built_files(&self, destination: &PathBuf) -> Result<()> {
         let path = self.get_built_files()?;
         fs::copy(path, destination)?;

@@ -12,7 +12,7 @@ use anyhow::{Ok, Result};
 use binary::deserialize;
 use clap::Parser;
 use installer::Installer;
-use oxfmt::Serializeable;
+use oxfmt::Serializable;
 use structs::ModBuild;
 
 fn main() -> Result<()> {
@@ -103,7 +103,9 @@ mod tests {
         };
 
         let serialized = build.clone().serialize().unwrap();
+        println!("Serialized: {:?}", serialized);
         let deserialized = deserialize(&serialized).unwrap();
+        println!("Deserialized: {:?}", deserialized);
         assert_eq!(build, deserialized);
     }
 }

@@ -1,15 +1,18 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
+use downcast_rs::{Downcast, impl_downcast};
 use std::{
-    alloc::{alloc, Layout},
+    alloc::{Layout, alloc},
+    any::Any,
+    collections::HashMap,
     ptr::copy_nonoverlapping,
     slice,
 };
 
-pub trait Serializeable {
+pub trait Serializable {
     fn serialize(&self) -> Result<Box<[u8]>>;
 }
 
-impl Serializeable for String {
+impl Serializable for String {
     fn serialize(&self) -> Result<Box<[u8]>> {
         let len = self.len() + 1;
         let layout = Layout::array::<u8>(len)?;
@@ -29,59 +32,87 @@ impl Serializeable for String {
     }
 }
 
-impl Serializeable for u8 {
+impl Serializable for u8 {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new(self.to_le_bytes()))
     }
 }
 
-impl Serializeable for u16 {
+impl Serializable for u16 {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new(self.to_le_bytes()))
     }
 }
 
-impl Serializeable for u32 {
+impl Serializable for u32 {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new(self.to_le_bytes()))
     }
 }
 
-impl Serializeable for u64 {
+impl Serializable for u64 {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new(self.to_le_bytes()))
     }
 }
 
-impl Serializeable for u128 {
+impl Serializable for u128 {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new(self.to_le_bytes()))
     }
 }
 
-impl<T: Serializeable> Serializeable for Vec<T> {
+impl Serializable for usize {
     fn serialize(&self) -> Result<Box<[u8]>> {
-        if self.len() > u8::MAX as usize {
-            bail!("Vec length exceeds u8 maximum");
-        }
+        Ok(Box::new(self.to_le_bytes()))
+    }
+}
 
-        let mut result = Vec::with_capacity(1);
-        result.push(self.len() as u8);
+impl<T: Serializable> Serializable for Vec<T> {
+    fn serialize(&self) -> Result<Box<[u8]>> {
+        let mut result = Vec::new();
+        result.extend(self.len().serialize()?);
 
         for item in self {
             let bytes = item.serialize()?;
-            result.extend_from_slice(&bytes);
+            result.extend(&bytes);
         }
 
         Ok(result.into_boxed_slice())
     }
 }
 
-impl<T: Serializeable> Serializeable for Option<T> {
+impl<T: Serializable> Serializable for Option<T> {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(match self {
             Some(val) => val.serialize()?,
             None => Box::from([]),
         })
     }
+}
+
+// Cursed code for runtime reflection
+pub trait Deserializable: Downcast {
+    fn get_structure() -> Structure
+    where
+        Self: Sized;
+    fn construct(fields: Vec<Box<dyn Any>>) -> Result<Self>
+    where
+        Self: Sized;
+}
+impl_downcast!(Deserializable);
+
+pub struct Structure {
+    pub fields: HashMap<usize, Field>,
+}
+
+pub enum Field {
+    String,
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+    Struct,
+    Vector,
 }
