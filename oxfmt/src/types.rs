@@ -1,9 +1,10 @@
-use anyhow::{bail, Result};
-use downcast_rs::{impl_downcast, Downcast};
+use anyhow::{Result, bail};
+use downcast_rs::{Downcast, impl_downcast};
 use std::{
-    alloc::{alloc, Layout},
+    alloc::{Layout, alloc},
     any::Any,
     collections::HashMap,
+    mem::MaybeUninit,
     ptr::copy_nonoverlapping,
     slice,
 };
@@ -76,15 +77,26 @@ impl Serializable for Box<[u8]> {
 
 impl<T: Serializable> Serializable for Vec<T> {
     fn serialize(&self) -> Result<Box<[u8]>> {
-        let mut result = Vec::new();
-        result.extend(self.len().serialize()?);
+        let serialized: Vec<Box<[u8]>> = self
+            .iter()
+            .map(|item| item.serialize())
+            .collect::<Result<_>>()?;
+        let count = self.len();
+        let payload_len: usize = serialized.iter().map(|b| b.len()).sum();
+        let total_len = size_of::<usize>() + payload_len;
 
-        for item in self {
-            let bytes = item.serialize()?;
-            result.extend(&bytes);
+        let mut boxed_uninit: Box<[MaybeUninit<u8>]> = Box::new_uninit_slice(total_len);
+        let ptr = boxed_uninit.as_mut_ptr() as *mut u8;
+
+        unsafe {
+            copy_nonoverlapping(count.to_le_bytes().as_ptr(), ptr, size_of::<usize>());
+            let mut offset = size_of::<usize>();
+            for b in serialized {
+                copy_nonoverlapping(b.as_ptr(), ptr.add(offset), b.len());
+                offset += b.len();
+            }
+            Ok(boxed_uninit.assume_init())
         }
-
-        Ok(result.into_boxed_slice())
     }
 }
 

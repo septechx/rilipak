@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 use crate::types::{Deserializable, Field};
 
