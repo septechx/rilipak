@@ -1,5 +1,5 @@
 use anyhow::{Result, bail};
-use oxfmt::{BinaryBuilder, Serializable};
+use oxfmt::Serializable;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Serializable)]

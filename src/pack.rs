@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::Result;
 
-use zip::{write::FileOptions, CompressionMethod, ZipWriter};
+use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 pub fn read_exclude() -> Result<Vec<PathBuf>> {
     let mut exclude = vec![

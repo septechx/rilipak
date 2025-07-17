@@ -1,7 +1,7 @@
 use std::{any::Any, collections::HashMap};
 
-use anyhow::{Result, anyhow, bail};
-use oxfmt::{BinaryBuilder, Deserializable, Field, Serializable, Structure};
+use anyhow::{anyhow, bail, Result};
+use oxfmt::{Deserializable, Field, Serializable, Structure};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Serializable)]
