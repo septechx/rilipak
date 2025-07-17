@@ -1,10 +1,10 @@
 use std::{any::Any, collections::HashMap};
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use oxfmt::{BinaryBuilder, Deserializable, Field, Serializable, Structure};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Serializable)]
 #[repr(u8)]
 pub enum BuildType {
     Cmd = 0,
@@ -19,12 +19,6 @@ impl TryFrom<u8> for BuildType {
             1 => Ok(BuildType::Std),
             other => bail!("invalid build type: {}", other),
         }
-    }
-}
-
-impl Serializable for BuildType {
-    fn serialize(&self) -> Result<Box<[u8]>> {
-        Ok(Box::new([*self as u8]))
     }
 }
 
@@ -60,22 +54,11 @@ impl Serializable for ModBuild {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Serializable)]
 pub struct ExcludePair {
     #[serde(rename = "type")]
     pub type_name: ExcludeType,
     pub value: String,
-}
-
-impl Serializable for ExcludePair {
-    fn serialize(&self) -> Result<Box<[u8]>> {
-        let result = BinaryBuilder::new_no_meta()
-            .add(&self.type_name)?
-            .add(&self.value)?
-            .build();
-
-        Ok(result)
-    }
 }
 
 impl Deserializable for ExcludePair {
@@ -102,7 +85,7 @@ impl Deserializable for ExcludePair {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Serializable)]
 #[repr(u8)]
 pub enum ExcludeType {
     Ends = 0,
@@ -119,11 +102,5 @@ impl TryFrom<u8> for ExcludeType {
             2 => Ok(ExcludeType::Contains),
             other => bail!("invalid build type: {}", other),
         }
-    }
-}
-
-impl Serializable for ExcludeType {
-    fn serialize(&self) -> Result<Box<[u8]>> {
-        Ok(Box::new([*self as u8]))
     }
 }

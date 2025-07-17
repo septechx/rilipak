@@ -10,3 +10,4 @@ mcmodbuild = { path = "./mcmodbuild", package = "mcmodbuild" }
 oxfmt = { path = "./oxfmt", packge = "oxfmt" }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_yml = "0.0.12"
+zip = "4.3.0"

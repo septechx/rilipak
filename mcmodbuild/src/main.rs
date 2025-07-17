@@ -30,7 +30,7 @@ fn build(file: PathBuf, destination: Option<PathBuf>) -> Result<()> {
 
     let id = build.id.clone();
     let name = format!("{id}.mcmodbuild");
-    let path: PathBuf = destination.unwrap_or(Path::new(&name).to_path_buf());
+    let path: PathBuf = destination.unwrap_or(PathBuf::from(&name));
 
     fs::write(path, build.serialize()?)?;
 

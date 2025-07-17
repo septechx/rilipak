@@ -1,7 +1,7 @@
-use anyhow::{Result, bail};
-use downcast_rs::{Downcast, impl_downcast};
+use anyhow::{bail, Result};
+use downcast_rs::{impl_downcast, Downcast};
 use std::{
-    alloc::{Layout, alloc},
+    alloc::{alloc, Layout},
     any::Any,
     collections::HashMap,
     ptr::copy_nonoverlapping,
@@ -65,6 +65,12 @@ impl Serializable for u128 {
 impl Serializable for usize {
     fn serialize(&self) -> Result<Box<[u8]>> {
         Ok(Box::new(self.to_le_bytes()))
+    }
+}
+
+impl Serializable for Box<[u8]> {
+    fn serialize(&self) -> Result<Box<[u8]>> {
+        Ok(Box::clone(self))
     }
 }
 
