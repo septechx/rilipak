@@ -6,8 +6,7 @@ pub fn deserialize(buf: &[u8]) -> Result<ModBuild> {
     let header = "mcmodbuild".as_bytes();
     let version: u16 = 1;
 
-    let mut deserialize = Deserialize::new(buf).init(header, version)?;
-
+    let mut deserialize = Deserialize::new(buf, header, version)?;
     let id = deserialize.read_string()?;
     let name = deserialize.read_string()?;
     let git = deserialize.read_string()?;

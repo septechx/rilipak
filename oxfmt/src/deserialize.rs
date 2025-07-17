@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
 use crate::types::{Deserializable, Field};
 
@@ -10,8 +10,8 @@ pub struct Deserialize<'a> {
 }
 
 impl<'a> Deserialize<'a> {
-    pub fn new(buf: &'a [u8]) -> Self {
-        Self { buf, arch: None }
+    pub fn new(buf: &'a [u8], header: &[u8], version: u16) -> Result<Self> {
+        Self { buf, arch: None }.init(header, version)
     }
 
     pub fn read_string(&mut self) -> Result<String> {
@@ -134,7 +134,7 @@ impl<'a> Deserialize<'a> {
         self.buf = &self.buf[len..];
     }
 
-    pub fn assert_header(&mut self, header: &[u8]) -> Result<()> {
+    fn assert_header(&mut self, header: &[u8]) -> Result<()> {
         if !self.buf.starts_with(header) {
             bail!("buffer does not start with header")
         }
@@ -142,19 +142,19 @@ impl<'a> Deserialize<'a> {
         Ok(())
     }
 
-    pub fn assert_version(&mut self, version: u16) -> Result<()> {
+    fn assert_version(&mut self, version: u16) -> Result<()> {
         if self.read_u16()? != version {
             bail!("version does not match")
         }
         Ok(())
     }
 
-    pub fn read_arch(&mut self) -> Result<()> {
+    fn read_arch(&mut self) -> Result<()> {
         self.arch = Some(self.read_u8()?);
         Ok(())
     }
 
-    pub fn init(mut self, header: &[u8], version: u16) -> Result<Self> {
+    fn init(mut self, header: &[u8], version: u16) -> Result<Self> {
         self.assert_header(header)?;
         self.assert_version(version)?;
         self.read_arch()?;
