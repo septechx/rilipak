@@ -24,8 +24,9 @@ fn main() -> Result<()> {
 
     match cli.subcommand {
         Subcommands::Build { destination } => build(destination),
-        Subcommands::Install { file, destination } => install(file, destination),
-        Subcommands::Init { path } => init(path),
+        //Subcommands::Install { file, destination } => install(file, destination),
+        //Subcommands::Init { path } => init(path),
+        _ => todo!(),
     }
 }
 
@@ -127,10 +128,10 @@ fn visit_dirs(
     Ok(())
 }
 
-fn install(file: PathBuf, destination: Option<PathBuf>) -> Result<()> {
-    todo!()
-}
-
-fn init(path: PathBuf) -> Result<()> {
-    todo!()
-}
+//fn install(file: PathBuf, destination: Option<PathBuf>) -> Result<()> {
+//    todo!()
+//}
+//
+//fn init(path: PathBuf) -> Result<()> {
+//    todo!()
+//}
