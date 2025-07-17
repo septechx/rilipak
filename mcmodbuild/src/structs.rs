@@ -22,7 +22,8 @@ impl TryFrom<u8> for BuildType {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Serializable)]
+#[oxfmt(header = "mcmodbuild", version = 1)]
 pub struct ModBuild {
     pub id: String,
     pub name: String,
@@ -32,26 +33,6 @@ pub struct ModBuild {
     pub cmd: Option<String>,
     pub out: String,
     pub exclude: Vec<ExcludePair>,
-}
-
-impl Serializable for ModBuild {
-    fn serialize(&self) -> Result<Box<[u8]>> {
-        let header = "mcmodbuild".as_bytes();
-        let version: u16 = 1;
-
-        let result = BinaryBuilder::new(header, version)
-            .add(&self.id)?
-            .add(&self.name)?
-            .add(&self.git)?
-            .add(&self.branch)?
-            .add(&self.build)?
-            .add(&self.cmd)?
-            .add(&self.out)?
-            .add(&self.exclude)?
-            .build();
-
-        Ok(result)
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Serializable)]

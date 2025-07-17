@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use oxfmt::{BinaryBuilder, Serializable};
 use serde::{Deserialize, Serialize};
 
@@ -58,39 +58,15 @@ impl TryFrom<u8> for ModEnv {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serializable)]
+#[oxfmt(header = "rilipak", version = 1)]
 pub struct Pack {
     pub meta: PackMeta,
     pub include: Box<[u8]>,
 }
 
-impl Serializable for Pack {
-    fn serialize(&self) -> Result<Box<[u8]>> {
-        let header = "rilipak".as_bytes();
-        let version: u16 = 1;
-
-        let result = BinaryBuilder::new(header, version)
-            .add(&self.meta)?
-            .add(&self.include)?
-            .build();
-
-        Ok(result)
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serializable)]
 pub struct PackMeta {
     pub config: PackConfig,
     pub modbuilds: Vec<Box<[u8]>>,
-}
-
-impl Serializable for PackMeta {
-    fn serialize(&self) -> Result<Box<[u8]>> {
-        let result = BinaryBuilder::new_no_meta()
-            .add(&self.config)?
-            .add(&self.modbuilds)?
-            .build();
-
-        Ok(result)
-    }
 }

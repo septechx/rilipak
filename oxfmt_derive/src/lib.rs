@@ -22,12 +22,41 @@ fn has_repr_u8(attrs: &[Attribute]) -> bool {
     false
 }
 
-#[proc_macro_derive(Serializable)]
+#[proc_macro_derive(Serializable, attributes(oxfmt))]
 pub fn serializable_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
     let generics = &input.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    // Parse #[oxfmt(header = ..., version = ...)]
+    let mut header: Option<syn::Lit> = None;
+    let mut version: Option<syn::Lit> = None;
+    for attr in &input.attrs {
+        if attr.path().is_ident("oxfmt") {
+            let _ = attr.parse_args_with(|input: syn::parse::ParseStream| {
+                while !input.is_empty() {
+                    let lookahead = input.lookahead1();
+                    if lookahead.peek(syn::Ident) {
+                        let ident: syn::Ident = input.parse()?;
+                        let _eq: syn::Token![=] = input.parse()?;
+                        let lit: syn::Lit = input.parse()?;
+                        match ident.to_string().as_str() {
+                            "header" => header = Some(lit),
+                            "version" => version = Some(lit),
+                            _ => {}
+                        }
+                        if input.peek(syn::Token![,]) {
+                            let _: syn::Token![,] = input.parse()?;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                Ok(())
+            });
+        }
+    }
 
     let expanded = match &input.data {
         Data::Struct(DataStruct { fields, .. }) => {
@@ -35,13 +64,29 @@ pub fn serializable_derive(input: TokenStream) -> TokenStream {
                 let fname = &f.ident;
                 quote! { .add(&self.#fname)? }
             });
-            quote! {
-                impl #impl_generics oxfmt::Serializable for #name #ty_generics #where_clause {
-                    fn serialize(&self) -> anyhow::Result<Box<[u8]>> {
-                        let result = oxfmt::BinaryBuilder::new_no_meta()
-                            #(#add_fields)*
-                            .build();
-                        Ok(result)
+            if let (Some(header), Some(version)) = (header, version) {
+                quote! {
+                    impl #impl_generics oxfmt::Serializable for #name #ty_generics #where_clause {
+                        fn serialize(&self) -> anyhow::Result<Box<[u8]>> {
+                            let result = oxfmt::BinaryBuilder::new(
+                                #header.as_bytes(),
+                                #version as u16
+                            )
+                                #(#add_fields)*
+                                .build();
+                            Ok(result)
+                        }
+                    }
+                }
+            } else {
+                quote! {
+                    impl #impl_generics oxfmt::Serializable for #name #ty_generics #where_clause {
+                        fn serialize(&self) -> anyhow::Result<Box<[u8]>> {
+                            let result = oxfmt::BinaryBuilder::new_no_meta()
+                                #(#add_fields)*
+                                .build();
+                            Ok(result)
+                        }
                     }
                 }
             }
