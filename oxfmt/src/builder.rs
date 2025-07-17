@@ -11,8 +11,8 @@ impl BinaryBuilder {
         buf.extend(header);
         buf.extend(version.to_le_bytes());
         let arch: u8 = match size_of::<usize>() {
-            4 => 0,
-            8 => 1,
+            4 => 0, // 32-bit
+            8 => 1, // 64-bit
             _ => panic!("invalid architecture: {}", size_of::<usize>()),
         };
         buf.push(arch);

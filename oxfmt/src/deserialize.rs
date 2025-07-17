@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 use crate::types::{Deserializable, Field};
 
@@ -91,16 +91,36 @@ impl<'a> Deserialize<'a> {
     pub fn read_usize(&mut self) -> Result<usize> {
         let size = match self.arch {
             Some(arch) => match arch {
-                0 => 4,
-                1 => 8,
+                0 => 4, // 32-bit
+                1 => 8, // 64-bit
                 _ => bail!("invalid architecture {}", arch),
             },
             None => bail!("no architecture specified"),
         };
-        let bytes = self.read_bytes(size)?;
-        Ok(usize::from_le_bytes(bytes.try_into()?))
-    }
 
+        let bytes = self.read_bytes(size)?;
+
+        let value = match size {
+            4 => {
+                let arr: [u8; 4] = bytes.try_into()?;
+                u32::from_le_bytes(arr) as u64
+            }
+            8 => {
+                let arr: [u8; 8] = bytes.try_into()?;
+                u64::from_le_bytes(arr)
+            }
+            _ => bail!("unsupported size: {}", size),
+        };
+
+        let usize_val =
+            usize::try_from(value).map_err(|_| anyhow::anyhow!("value does not fit in usize"))?;
+
+        if usize::BITS < 64 && value > u32::MAX as u64 {
+            bail!("value does not fit in 32-bit usize");
+        }
+
+        Ok(usize_val)
+    }
     pub fn read_bytes(&mut self, bytes: usize) -> Result<&[u8]> {
         if self.buf.len() < bytes {
             bail!("not enough bytes")

@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Debug, Clone, Parser)]
 #[clap(version)]
-pub struct McModBuild {
+pub struct RilipakCli {
     #[clap(subcommand)]
     pub subcommand: Subcommands,
 }
@@ -12,9 +12,6 @@ pub struct McModBuild {
 #[derive(Debug, Clone, Subcommand)]
 pub enum Subcommands {
     Build {
-        #[clap(required = true)]
-        file: PathBuf,
-
         #[clap(short = 'd')]
         destination: Option<PathBuf>,
     },

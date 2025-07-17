@@ -19,54 +19,32 @@ fn main() -> Result<()> {
     let cli = cli::McModBuild::parse();
 
     match cli.subcommand {
-        cli::Subcommands::Build { file, destination } => build(file, destination)?,
-        cli::Subcommands::Install { file, destination } => install(file, destination)?,
-    };
-
-    Ok(())
+        cli::Subcommands::Build { file, destination } => build(file, destination),
+        cli::Subcommands::Install { file, destination } => install(file, destination),
+    }
 }
 
-fn build(file: String, destination: Option<String>) -> Result<()> {
+fn build(file: PathBuf, destination: Option<PathBuf>) -> Result<()> {
     let content = fs::read_to_string(file)?;
     let build: ModBuild = serde_yml::from_str(&content)?;
 
     let id = build.id.clone();
-    let name = format!("{}.mcmodbuild", id);
-    let path: PathBuf = if let Some(path) = destination {
-        resolve_path(&path, &name)
-    } else {
-        Path::new(&name).to_path_buf()
-    };
+    let name = format!("{id}.mcmodbuild");
+    let path: PathBuf = destination.unwrap_or(Path::new(&name).to_path_buf());
 
     fs::write(path, build.serialize()?)?;
 
     Ok(())
 }
 
-fn resolve_path(input: &str, default: &str) -> PathBuf {
-    let path = Path::new(input);
-
-    if path.extension().is_some() || path.is_file() {
-        path.to_path_buf()
-    } else {
-        let mut new_path = path.to_path_buf();
-        new_path.push(default);
-        new_path
-    }
-}
-
-fn install(file: String, destination: Option<String>) -> Result<()> {
+fn install(file: PathBuf, destination: Option<PathBuf>) -> Result<()> {
     let content = fs::read_to_string(file)?;
     let build = deserialize(content.as_bytes())?;
 
     let id = build.id.clone();
     let branch = build.branch.clone();
-    let name = format!("{}-{}.jar", id, branch);
-    let destination = if let Some(path) = destination {
-        resolve_path(&path, &name)
-    } else {
-        Path::new(&name).to_path_buf()
-    };
+    let name = format!("{id}-{branch}.jar");
+    let destination = destination.unwrap_or(Path::new(&name).to_path_buf());
 
     let installer = Installer::new(build)?;
     installer.install(destination)?;
@@ -103,9 +81,9 @@ mod tests {
         };
 
         let serialized = build.clone().serialize().unwrap();
-        println!("Serialized: {:?}", serialized);
+        println!("Serialized: {serialized:?}");
         let deserialized = deserialize(&serialized).unwrap();
-        println!("Deserialized: {:?}", deserialized);
+        println!("Deserialized: {deserialized:?}");
         assert_eq!(build, deserialized);
     }
 }

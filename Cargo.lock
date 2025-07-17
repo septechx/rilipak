@@ -291,8 +291,12 @@ dependencies = [
 name = "rilipak"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "mcmodbuild",
+ "oxfmt",
+ "serde",
+ "serde_yml",
 ]
 
 [[package]]

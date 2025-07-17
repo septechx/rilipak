@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::structs::{BuildType, ExcludeType, ModBuild};
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use directories::ProjectDirs;
 
 pub struct Installer {
@@ -66,9 +66,9 @@ impl Installer {
             std::io::stdout().flush()?;
 
             match step() {
-                Ok(_) => println!("✅ {}", success),
+                Ok(_) => println!("✅ {success}"),
                 Err(e) => {
-                    println!("❌ {}", failure);
+                    println!("❌ {failure}");
                     return Err(e);
                 }
             }
@@ -173,11 +173,8 @@ impl Installer {
 
         let out_path = Path::new(&out_path);
 
-        let path: PathBuf;
-        match path_type {
-            PathType::File => {
-                path = out_path.to_path_buf();
-            }
+        let path: PathBuf = match path_type {
+            PathType::File => out_path.to_path_buf(),
             PathType::Dir => {
                 let matching_files = self.find_matching_files(out_path)?;
 
@@ -185,9 +182,9 @@ impl Installer {
                     bail!("Matched more or less than one result files");
                 }
 
-                path = matching_files[0].clone();
+                matching_files[0].clone()
             }
-        }
+        };
 
         Ok(path)
     }
