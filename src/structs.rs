@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use oxfmt::{BinaryBuilder, Serializable};
 use serde::{Deserialize, Serialize};
 
@@ -7,6 +7,7 @@ pub struct PackConfig {
     pub id: String,
     pub name: String,
     pub author: String,
+    pub version: String,
     pub mods: Vec<Mod>,
 }
 

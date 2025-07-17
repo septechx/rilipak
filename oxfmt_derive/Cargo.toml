@@ -1,5 +1,5 @@
 [package]
-name = "oxfmt-derive"
+name = "oxfmt_derive"
 version = "0.1.0"
 edition = "2024"
 

@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.98"
 downcast-rs = "2.0.1"
-oxfmt-derive = { path = "../oxfmt-derive" }
+oxfmt_derive = { path = "../oxfmt_derive" }
 
 [lib]
 name = "oxfmt"

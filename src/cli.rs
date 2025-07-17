@@ -25,4 +25,5 @@ pub enum Subcommands {
     Init {
         path: PathBuf,
     },
+    Check,
 }

@@ -3,28 +3,7 @@
 version = 4
 
 [[package]]
-name = "anyhow"
-version = "1.0.98"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
-
-[[package]]
-name = "downcast-rs"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea8a8b81cacc08888170eef4d13b775126db426d0b348bee9d18c2c1eaf123cf"
-
-[[package]]
-name = "oxfmt"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "downcast-rs",
- "oxfmt_derive",
-]
-
-[[package]]
-name = "oxfmt_derive"
+name = "oxfmt-derive"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
