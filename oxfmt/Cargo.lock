@@ -16,7 +16,7 @@ checksum = "ea8a8b81cacc08888170eef4d13b775126db426d0b348bee9d18c2c1eaf123cf"
 
 [[package]]
 name = "oxfmt"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "downcast-rs",

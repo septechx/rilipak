@@ -1,7 +1,7 @@
-use std::{any::Any, collections::HashMap};
+use std::any::Any;
 
-use anyhow::{anyhow, bail, Result};
-use oxfmt::{Deserializable, Field, Serializable, Structure};
+use anyhow::Result;
+use oxfmt::{Deserializable, Field, Serializable, Structure, construct, structure};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Serializable)]
@@ -11,13 +11,12 @@ pub enum BuildType {
     Std = 1,
 }
 
-impl TryFrom<u8> for BuildType {
-    type Error = anyhow::Error;
-    fn try_from(v: u8) -> Result<Self> {
+impl From<u8> for BuildType {
+    fn from(v: u8) -> Self {
         match v {
-            0 => Ok(BuildType::Cmd),
-            1 => Ok(BuildType::Std),
-            other => bail!("invalid build type: {}", other),
+            0 => BuildType::Cmd,
+            1 => BuildType::Std,
+            other => panic!("invalid build type: {other}"),
         }
     }
 }
@@ -44,25 +43,14 @@ pub struct ExcludePair {
 
 impl Deserializable for ExcludePair {
     fn get_structure() -> Structure {
-        let mut fields = HashMap::new();
-        fields.insert(0, Field::U8);
-        fields.insert(1, Field::String);
-        Structure { fields }
+        structure!(Field::U8, Field::String)
     }
 
     fn construct(mut fields: Vec<Box<dyn Any>>) -> Result<Self> {
-        let type_value = *fields
-            .remove(0)
-            .downcast::<u8>()
-            .map_err(|_| anyhow!("expected u8 for ExcludeType"))?;
-        let type_name = ExcludeType::try_from(type_value)?;
-
-        let value = *fields
-            .remove(0)
-            .downcast::<String>()
-            .map_err(|_| anyhow!("expected string"))?;
-
-        Ok(ExcludePair { type_name, value })
+        construct!(fields,
+            type_name: ExcludeType as u8,
+            value: String as String,
+        )
     }
 }
 
@@ -74,14 +62,13 @@ pub enum ExcludeType {
     Contains = 2,
 }
 
-impl TryFrom<u8> for ExcludeType {
-    type Error = anyhow::Error;
-    fn try_from(v: u8) -> Result<Self> {
+impl From<u8> for ExcludeType {
+    fn from(v: u8) -> Self {
         match v {
-            0 => Ok(ExcludeType::Ends),
-            1 => Ok(ExcludeType::Starts),
-            2 => Ok(ExcludeType::Contains),
-            other => bail!("invalid build type: {}", other),
+            0 => ExcludeType::Ends,
+            1 => ExcludeType::Starts,
+            2 => ExcludeType::Contains,
+            other => panic!("invalid build type: {other}"),
         }
     }
 }
