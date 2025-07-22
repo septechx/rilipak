@@ -1,7 +1,4 @@
-use std::any::Any;
-
-use anyhow::Result;
-use oxfmt::{Deserializable, Field, Serializable, Structure, construct, structure};
+use oxfmt::{Deserializable, Field, Serializable};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Serializable)]
@@ -34,24 +31,13 @@ pub struct ModBuild {
     pub exclude: Vec<ExcludePair>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Serializable)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Serializable, Deserializable)]
 pub struct ExcludePair {
     #[serde(rename = "type")]
+    #[oxfmt(mapping = Field::U8, from = u8)]
     pub type_name: ExcludeType,
+    #[oxfmt(mapping = Field::String)]
     pub value: String,
-}
-
-impl Deserializable for ExcludePair {
-    fn get_structure() -> Structure {
-        structure!(Field::U8, Field::String)
-    }
-
-    fn construct(mut fields: Vec<Box<dyn Any>>) -> Result<Self> {
-        construct!(fields,
-            type_name: ExcludeType as u8,
-            value: String as String,
-        )
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Serializable)]

@@ -1,15 +1,15 @@
 pub mod macros_ {
     #[macro_export]
     macro_rules! structure {
-    ($($field:expr),* $(,)?) => {{
-        let mut fields = std::collections::HashMap::new();
-        let mut index = 0;
-        $(
-            fields.insert(index, $field);
-            index += 1;
-        )*
-        oxfmt::Structure { fields }
-    }};
+        ($($field:expr),* $(,)?) => {{
+            let mut fields = std::collections::HashMap::new();
+            let mut index = 0;
+            $(
+                fields.insert(index, $field);
+                index += 1;
+            )*
+            oxfmt::Structure { fields }
+        }};
     }
 
     #[macro_export]
