@@ -16,14 +16,13 @@ pub enum Subcommands {
         destination: Option<PathBuf>,
     },
     Install {
-        #[clap(required = true)]
         file: PathBuf,
 
         #[clap(short = 'd')]
         destination: Option<PathBuf>,
     },
     Init {
-        path: PathBuf,
+        path: Option<PathBuf>,
     },
     Check,
 }

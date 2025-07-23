@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.98"
 clap = { version = "4.5.41", features = ["derive"] }
+colored = "3.0.0"
 mcmodbuild = { path = "./mcmodbuild", package = "mcmodbuild" }
 oxfmt = { path = "./oxfmt", package = "oxfmt" }
 semver = "1.0.26"

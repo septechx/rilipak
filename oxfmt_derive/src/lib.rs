@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::punctuated::Punctuated;
-use syn::{Attribute, Data, DataEnum, DataStruct, DeriveInput, Meta, Path, parse_macro_input};
+use syn::{parse_macro_input, Attribute, Data, DataEnum, DataStruct, DeriveInput, Meta, Path};
 
 fn has_repr_u8(attrs: &[Attribute]) -> bool {
     for attr in attrs {
